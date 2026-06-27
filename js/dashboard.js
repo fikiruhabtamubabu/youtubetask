@@ -4,6 +4,13 @@ import { checkRouteGuard } from './app.js';
 import { NotificationManager } from './notifications.js';
 import { formatCurrency } from './utils.js';
 
+// Clean hoisted helper to extract the video ID
+function extractVideoID(url) {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
 let currentPage = 1;
 const tasksPerPage = 10;
 let totalTasksCount = 0;
@@ -155,16 +162,21 @@ function openWatchModal(taskId, videoUrl, watchTime, title) {
 
   document.getElementById('modal-title').innerText = title;
   document.getElementById('modal-timer-countdown').innerText = formatTimer(secondsLeft);
-  document.getElementById('modal-status-text').innerHTML = `Click the play button to start watching.`;
+  document.getElementById('modal-status-text').innerHTML = `Click the play button below to start watching.`;
   document.getElementById('watch-modal').style.display = 'flex';
 
-  // Show the custom play overlay button
-  document.getElementById('video-play-overlay').style.display = 'flex';
+  // Display the static thumbnail image & bottom action play button
+  document.getElementById('modal-static-thumbnail').style.display = 'block';
+  document.getElementById('modal-video-frame').style.display = 'none';
+  document.getElementById('video-play-btn').style.display = 'flex';
 
   const videoId = extractVideoID(videoUrl);
   if (videoId) {
     activeVideoId = videoId;
-    // Inject the iframe immediately with pointer-events locked to prevent manual pausing/skipping
+    // Set static YouTube thumbnail image as the preview
+    document.getElementById('modal-static-thumbnail').src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    
+    // Inject the empty iframe with pointer-events locked
     document.getElementById('modal-video-frame').innerHTML = `
       <iframe id="yt-iframe" src="" style="width: 100%; height: 100%; border: none; pointer-events: none;" allow="autoplay"></iframe>
     `;
@@ -178,9 +190,13 @@ function startVideoPlayback() {
   if (!activeVideoId) return;
 
   isVideoPlaying = true;
-  document.getElementById('video-play-overlay').style.display = 'none';
+  
+  // Update visibility of layers
+  document.getElementById('modal-static-thumbnail').style.display = 'none';
+  document.getElementById('modal-video-frame').style.display = 'block';
+  document.getElementById('video-play-btn').style.display = 'none';
 
-  // Load the YouTube embed with controls hidden (controls=0) and autoplay active (autoplay=1)
+  // Load the YouTube embed with controls hidden and autoplay active
   const embedUrl = `https://www.youtube.com/embed/${activeVideoId}?autoplay=1&controls=0&rel=0&disablekb=1&iv_load_policy=3&origin=${window.location.origin}`;
   document.getElementById('yt-iframe').src = embedUrl;
 
@@ -270,8 +286,8 @@ function setupModalEventListeners() {
     closeWatchModal();
   });
 
-  // Attach click handler to the custom play overlay
-  document.getElementById('video-play-overlay').addEventListener('click', () => {
+  // Attach click handler to the custom play button in the footer
+  document.getElementById('video-play-btn').addEventListener('click', () => {
     startVideoPlayback();
   });
 
