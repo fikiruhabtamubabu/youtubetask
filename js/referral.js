@@ -23,13 +23,14 @@ async function initReferral() {
 }
 
 async function loadReferralsList(userId) {
+  // Correctly disambiguate the 'profiles' join using the 'referred_id' foreign key
   const { data: list, error } = await supabase
     .from('referrals')
     .select(`
       id,
       status,
       reward,
-      referred_id ( name, email )
+      profiles!referred_id ( name, email )
     `)
     .eq('referrer_id', userId);
 
@@ -53,7 +54,8 @@ async function loadReferralsList(userId) {
 
   // Render the table
   container.innerHTML = list.map(ref => {
-    const displayName = ref.referred_id?.name || ref.referred_id?.email || 'New User';
+    // Read nested profiles object returned by PostgREST
+    const displayName = ref.profiles?.name || ref.profiles?.email || 'New User';
     return `
       <div style="border-bottom: 1px solid var(--border); padding: 14px 0; display:flex; justify-content:space-between; align-items:center;">
         <div>
