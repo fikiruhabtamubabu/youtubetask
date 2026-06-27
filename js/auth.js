@@ -9,33 +9,17 @@ export async function signupUser(email, password, name, referralCode = null) {
       password,
       options: {
         data: {
-          name: name // Automatically saved to raw_user_meta_data
+          name: name,
+          referral_code: referralCode // Pass the referral code in user metadata
         }
       }
     });
 
     if (signupErr) throw signupErr;
 
-    // Handle referral tracking if code is present
-    if (referralCode && authData.user) {
-      const { data: referrer, error: refErr } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('referral_code', referralCode)
-        .single();
-
-      if (!refErr && referrer) {
-        await supabase.from('referrals').insert({
-          referrer_id: referrer.id,
-          referred_id: authData.user.id,
-          status: 'pending'
-        });
-      }
-    }
-
     NotificationManager.show("Registration successful!", "success");
     
-    // Automatically log the user in immediately after signup
+    // Automatically log the user in
     await loginUser(email, password);
     
   } catch (err) {
