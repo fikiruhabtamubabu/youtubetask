@@ -9,21 +9,19 @@ const tasksPerPage = 10;
 let totalTasksCount = 0;
 
 // Modal & Anti-Cheat variables
-let ytPlayerInstance = null;
 let countdownTimer = null;
-let fallbackInterval = null; // Backup polling tracker
-let lastTrackedTime = -1;
 let secondsLeft = 0;
 let isVideoPlaying = false;
 let isWindowFocused = true;
 let isTaskCompleted = false;
 let activeTaskId = null;
+let activeVideoId = null;
 
 async function initDashboard() {
   const session = await checkRouteGuard(true);
   if (!session) return;
 
-  // Optimize: Fetch profile metrics and task grid in parallel to eliminate page lag
+  // Fetch profile metrics and tasks grid in parallel
   try {
     await Promise.all([
       loadUserProfile(session.user.id),
@@ -57,7 +55,6 @@ async function loadTasksGrid() {
   const container = document.getElementById('tasks-container');
   container.innerHTML = '<div class="shimmer-load" style="height:220px; width:100%; border-radius:20px; grid-column: 1/-1;"></div>';
 
-  // Get total active tasks count for pagination
   const { count } = await supabase
     .from('youtube_tasks')
     .select('*', { count: 'exact', head: true })
@@ -68,7 +65,6 @@ async function loadTasksGrid() {
   const startRange = (currentPage - 1) * tasksPerPage;
   const endRange = startRange + tasksPerPage - 1;
 
-  // Fetch tasks with pagination range
   const { data: tasks, error } = await supabase
     .from('youtube_tasks')
     .select('*')
@@ -104,7 +100,6 @@ async function loadTasksGrid() {
     container.appendChild(card);
   });
 
-  // Attach watch button handlers
   document.querySelectorAll('.watch-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       openWatchModal(
@@ -150,101 +145,49 @@ function setupPaginationEventListeners() {
   }
 }
 
-/* Modal Popup & Anti-Cheat Player Engine */
+/* Modal Popup & Anti-Cheat Direct Player Engine */
 
 function openWatchModal(taskId, videoUrl, watchTime, title) {
   activeTaskId = taskId;
   secondsLeft = watchTime;
   isTaskCompleted = false;
   isVideoPlaying = false;
-  lastTrackedTime = -1;
 
   document.getElementById('modal-title').innerText = title;
   document.getElementById('modal-timer-countdown').innerText = formatTimer(secondsLeft);
-  document.getElementById('modal-status-text').innerHTML = `Initializing secure video player...`;
+  document.getElementById('modal-status-text').innerHTML = `Click the play button to start watching.`;
   document.getElementById('watch-modal').style.display = 'flex';
+
+  // Show the custom play overlay button
+  document.getElementById('video-play-overlay').style.display = 'flex';
 
   const videoId = extractVideoID(videoUrl);
   if (videoId) {
-    initializeIframePlayer(videoId);
+    activeVideoId = videoId;
+    // Inject the iframe immediately with pointer-events locked to prevent manual pausing/skipping
+    document.getElementById('modal-video-frame').innerHTML = `
+      <iframe id="yt-iframe" src="" style="width: 100%; height: 100%; border: none; pointer-events: none;" allow="autoplay"></iframe>
+    `;
   } else {
     NotificationManager.show("Invalid YouTube URL metadata.", "error");
     closeWatchModal();
   }
 }
 
-function extractVideoID(url) {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-}
+function startVideoPlayback() {
+  if (!activeVideoId) return;
 
-function initializeIframePlayer(videoId) {
-  document.getElementById('modal-video-frame').innerHTML = '';
-  
-  ytPlayerInstance = new YT.Player('modal-video-frame', {
-    videoId: videoId,
-    playerVars: {
-      'autoplay': 0,
-      'controls': 1,
-      'disablekb': 1,
-      'rel': 0,
-      'fs': 0,
-      'enablejsapi': 1, // Enables Javascript interface on the Iframe
-      'origin': window.location.origin
-    },
-    events: {
-      'onReady': onPlayerReady, // Safely delay tracking until the player is ready
-      'onStateChange': onPlayerStateChange
-    }
-  });
-}
+  isVideoPlaying = true;
+  document.getElementById('video-play-overlay').style.display = 'none';
 
-function onPlayerReady(event) {
-  console.log("YouTube Player is ready. Initializing dynamic anti-cheat tracking.");
-  document.getElementById('modal-status-text').innerHTML = `Play the video to start the verification timer.`;
-  
-  // Only start the fallback tracking loop AFTER the onReady event fires safely
-  startFallbackPolling();
-}
+  // Load the YouTube embed with controls hidden (controls=0) and autoplay active (autoplay=1)
+  const embedUrl = `https://www.youtube.com/embed/${activeVideoId}?autoplay=1&controls=0&rel=0&disablekb=1&iv_load_policy=3&origin=${window.location.origin}`;
+  document.getElementById('yt-iframe').src = embedUrl;
 
-function onPlayerStateChange(event) {
-  if (event.data === YT.PlayerState.PLAYING) {
-    isVideoPlaying = true;
-    if (isWindowFocused) {
-      startCountdownTimer();
-    }
-  } else {
-    isVideoPlaying = false;
-    pauseCountdownTimer("Playback paused.");
+  // Immediately start the countdown timer
+  if (isWindowFocused) {
+    startCountdownTimer();
   }
-}
-
-// Backup Polling Engine: Bypasses browser cross-origin constraints
-function startFallbackPolling() {
-  if (fallbackInterval) return;
-
-  fallbackInterval = setInterval(() => {
-    if (ytPlayerInstance && typeof ytPlayerInstance.getPlayerState === 'function') {
-      try {
-        const state = ytPlayerInstance.getPlayerState();
-
-        // state 1 = Playing, state 3 = Buffering
-        // Keep the countdown ticking smoothly during standard play and slow network buffering.
-        if (state === 1 || state === 3) {
-          isVideoPlaying = true;
-          if (isWindowFocused && !countdownTimer) {
-            startCountdownTimer();
-          }
-        } else {
-          isVideoPlaying = false;
-          pauseCountdownTimer("Playback paused.");
-        }
-      } catch (err) {
-        // Suppress any temporary cross-origin initialization errors
-      }
-    }
-  }, 500);
 }
 
 function startCountdownTimer() {
@@ -298,7 +241,7 @@ async function executeTaskReward() {
     // Automatically close the popup after a brief delay
     setTimeout(() => {
       closeWatchModal();
-      loadTasksGrid(); // Refresh tasks grid dynamically
+      loadTasksGrid();
     }, 2500);
 
   } catch (err) {
@@ -308,24 +251,18 @@ async function executeTaskReward() {
 }
 
 function closeWatchModal() {
-  // Clear any running intervals
   if (countdownTimer) {
     clearInterval(countdownTimer);
     countdownTimer = null;
   }
-  if (fallbackInterval) {
-    clearInterval(fallbackInterval);
-    fallbackInterval = null;
-  }
 
-  // Destroy YouTube Player instance to stop playback
-  if (ytPlayerInstance && ytPlayerInstance.destroy) {
-    ytPlayerInstance.destroy();
-    ytPlayerInstance = null;
-  }
-
+  // Clear the iframe structure to stop playback immediately
+  document.getElementById('modal-video-frame').innerHTML = '';
   document.getElementById('watch-modal').style.display = 'none';
+  
   activeTaskId = null;
+  activeVideoId = null;
+  isVideoPlaying = false;
 }
 
 function setupModalEventListeners() {
@@ -333,25 +270,34 @@ function setupModalEventListeners() {
     closeWatchModal();
   });
 
+  // Attach click handler to the custom play overlay
+  document.getElementById('video-play-overlay').addEventListener('click', () => {
+    startVideoPlayback();
+  });
+
   // Track window focus and tab changes to handle anti-cheat triggers
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       isWindowFocused = false;
       pauseCountdownTimer("Focus shifted.");
-      if (ytPlayerInstance && ytPlayerInstance.pauseVideo) ytPlayerInstance.pauseVideo();
     } else {
       isWindowFocused = true;
+      if (isVideoPlaying && !isTaskCompleted) {
+        startCountdownTimer();
+      }
     }
   });
 
   window.addEventListener("blur", () => {
     isWindowFocused = false;
     pauseCountdownTimer("Focus shifted.");
-    if (ytPlayerInstance && ytPlayerInstance.pauseVideo) ytPlayerInstance.pauseVideo();
   });
 
   window.addEventListener("focus", () => {
     isWindowFocused = true;
+    if (isVideoPlaying && !isTaskCompleted) {
+      startCountdownTimer();
+    }
   });
 }
 
