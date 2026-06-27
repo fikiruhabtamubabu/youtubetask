@@ -70,50 +70,57 @@ document.getElementById('withdraw-form').addEventListener('submit', async (e) =>
 });
 
 document.addEventListener('DOMContentLoaded', initWithdraw);
-// Mobile Responsive Menu Toggle Handler (Transforms --- to X, hides underlying pages)
+// Reusable, Event-Delegated Mobile Menu Toggle Handler (Bypasses mobile bubbling conflicts)
 function setupMobileMenu() {
-  const triggerBtn = document.getElementById('mobile-menu-trigger');
-  const sidebar = document.querySelector('aside');
-  
-  if (triggerBtn && sidebar) {
-    triggerBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      
+  document.addEventListener('click', (e) => {
+    const triggerBtn = document.getElementById('mobile-menu-trigger');
+    const sidebar = document.querySelector('aside');
+    if (!triggerBtn || !sidebar) return;
+
+    // Check if the click is on the trigger button or any element inside it (like the icon)
+    if (triggerBtn.contains(e.target)) {
+      e.preventDefault();
       const isOpen = sidebar.classList.contains('mobile-menu-open');
       const icon = triggerBtn.querySelector('i');
       
       if (!isOpen) {
+        // Open the full-screen menu overlay
         sidebar.classList.add('mobile-menu-open');
-        icon.className = 'fas fa-times'; // Change icon to X
-        document.body.style.overflow = 'hidden'; // Stop background scrolling
+        if (icon) icon.className = 'fas fa-times'; // Change icon to X
+        document.body.style.overflow = 'hidden'; // Lock background scrolling
       } else {
+        // Close the menu
         sidebar.classList.remove('mobile-menu-open');
-        icon.className = 'fas fa-bars'; // Change icon back to hamburger
-        document.body.style.overflow = 'auto'; // Restore background scrolling
+        if (icon) icon.className = 'fas fa-bars'; // Change icon back to ---
+        document.body.style.overflow = 'auto'; // Restore scrolling
       }
-    });
-
-    document.querySelectorAll('aside .menu-link').forEach(link => {
-      link.addEventListener('click', () => {
+    } else if (sidebar.classList.contains('mobile-menu-open')) {
+      // If menu is open and click is outside the sidebar, close it immediately
+      if (!sidebar.contains(e.target)) {
         sidebar.classList.remove('mobile-menu-open');
         const icon = triggerBtn.querySelector('i');
         if (icon) icon.className = 'fas fa-bars';
         document.body.style.overflow = 'auto';
-      });
-    });
+      }
+    }
+  });
 
-    document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('mobile-menu-open')) {
-        if (!sidebar.contains(e.target) && !triggerBtn.contains(e.target)) {
-          sidebar.classList.remove('mobile-menu-open');
+  // Ensure menu closes if any navigation link is clicked
+  const sidebar = document.querySelector('aside');
+  if (sidebar) {
+    sidebar.querySelectorAll('.menu-link').forEach(link => {
+      link.addEventListener('click', () => {
+        sidebar.classList.remove('mobile-menu-open');
+        const triggerBtn = document.getElementById('mobile-menu-trigger');
+        if (triggerBtn) {
           const icon = triggerBtn.querySelector('i');
           if (icon) icon.className = 'fas fa-bars';
-          document.body.style.overflow = 'auto';
         }
-      }
+        document.body.style.overflow = 'auto';
+      });
     });
   }
 }
 
-// Execute responsive handler
+// Execute the responsive menu handler
 setupMobileMenu();
