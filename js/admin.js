@@ -1,93 +1,167 @@
-// Admin panel control functions
+// js/admin.js
 import { supabase } from './supabase.js';
 import { checkAdminGuard } from './app.js';
 import { NotificationManager } from './notifications.js';
 
-async function initAdmin() {
+async function initAdminPanel() {
   await checkAdminGuard();
-  await loadWithdrawalRequests();
-  await loadActiveTasks();
+  await loadAdminStats();
+  await loadPayoutRequests();
+  await loadCreatedTasksList();
 }
 
-async function loadWithdrawalRequests() {
-  const { data: list } = await supabase
+async function loadAdminStats() {
+  // Query total system users
+  const { count: usersCount } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true });
+  document.getElementById('admin-total-users').innerText = usersCount || 0;
+
+  // Query total active youtube tasks
+  const { count: tasksCount } = await supabase
+    .from('youtube_tasks')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active');
+  document.getElementById('admin-total-tasks').innerText = tasksCount || 0;
+
+  // Query pending withdraw requests count
+  const { count: pendingPayoutsCount } = await supabase
+    .from('withdraw_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending');
+  document.getElementById('admin-pending-payouts').innerText = pendingPayoutsCount || 0;
+}
+
+async function loadPayoutRequests() {
+  const container = document.getElementById('payout-requests-container');
+
+  const { data: requests, error } = await supabase
     .from('withdraw_requests')
     .select('*, profiles(name, email)')
     .eq('status', 'pending');
 
-  const container = document.getElementById('payout-requests');
-  if (!list || list.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-muted)">No pending payouts found.</p>';
+  if (error || !requests || requests.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted);">No pending withdrawals.</p>';
     return;
   }
 
-  container.innerHTML = list.map(req => `
-    <div style="border-bottom:1px solid var(--border); padding:16px 0; display:flex; justify-content:space-between; align-items:center;">
+  container.innerHTML = requests.map(req => `
+    <div style="border-bottom: 1px solid var(--border); padding: 12px 0; display: flex; justify-content: space-between; align-items: center;">
       <div>
         <strong>$${req.amount.toFixed(2)}</strong> to ${req.profiles?.name || req.profiles?.email}<br>
-        <span style="font-size:0.8rem; color:var(--text-muted)">Method: ${req.method} (${req.wallet})</span>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">${req.method} (${req.wallet})</span>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn-primary" style="padding:6px 12px; background:var(--success); font-size:0.8rem;" onclick="processPayout('${req.id}', 'approved')">Approve</button>
-        <button class="btn-secondary" style="padding:6px 12px; font-size:0.8rem;" onclick="processPayout('${req.id}', 'rejected')">Reject</button>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-primary approve-btn" data-id="${req.id}" style="padding: 6px 12px; font-size: 0.75rem; background: var(--success);">Approve</button>
+        <button class="btn-secondary reject-btn" data-id="${req.id}" style="padding: 6px 12px; font-size: 0.75rem; color: #EF4444; border-color: rgba(239, 68, 68, 0.2);">Reject</button>
       </div>
     </div>
   `).join('');
+
+  // Attach event handlers
+  document.querySelectorAll('.approve-btn').forEach(btn => {
+    btn.addEventListener('click', () => processPayout(btn.getAttribute('data-id'), 'approved'));
+  });
+  document.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', () => processPayout(btn.getAttribute('data-id'), 'rejected'));
+  });
 }
 
-window.processPayout = async (id, status) => {
+async function processPayout(id, status) {
   const { error } = await supabase
     .from('withdraw_requests')
     .update({ status })
     .eq('id', id);
 
   if (error) {
-    NotificationManager.show("Modification error.", "error");
+    NotificationManager.show("Error updating payout.", "error");
   } else {
-    NotificationManager.show(`Request marked as ${status}.`, "success");
-    loadWithdrawalRequests();
+    NotificationManager.show(`Payout request ${status}.`, "success");
+    initAdminPanel();
   }
-};
-
-async function loadActiveTasks() {
-  const { data: list } = await supabase
-    .from('youtube_tasks')
-    .select('*');
-
-  const container = document.getElementById('tasks-list');
-  container.innerHTML = list.map(t => `
-    <div style="padding:10px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
-      <span>${t.title} (+$${t.reward.toFixed(2)})</span>
-      <button class="btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteTask('${t.id}')">Delete</button>
-    </div>
-  `).join('');
 }
 
-window.deleteTask = async (id) => {
-  const { error } = await supabase.from('youtube_tasks').delete().eq('id', id);
-  if (error) NotificationManager.show("Task deletion error", "error");
-  else {
-    NotificationManager.show("Task removed.", "success");
-    loadActiveTasks();
-  }
-};
+async function loadCreatedTasksList() {
+  const container = document.getElementById('active-tasks-list');
 
-document.getElementById('task-form').addEventListener('submit', async (e) => {
+  const { data: tasks, error } = await supabase
+    .from('youtube_tasks')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  if (error || !tasks || tasks.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted);">No tasks registered yet.</p>';
+    return;
+  }
+
+  container.innerHTML = tasks.map(t => `
+    <div style="border-bottom: 1px solid var(--border); padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+      <span>${t.title} (+$${t.reward.toFixed(2)})</span>
+      <button class="btn-secondary delete-task-btn" data-id="${t.id}" style="padding: 4px 8px; font-size: 0.75rem; color: #EF4444; border-color: rgba(239, 68, 68, 0.2);">Delete</button>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.delete-task-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteTask(btn.getAttribute('data-id')));
+  });
+}
+
+async function deleteTask(id) {
+  const { error } = await supabase
+    .from('youtube_tasks')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    NotificationManager.show("Error deleting task.", "error");
+  } else {
+    NotificationManager.show("Task deleted successfully.", "success");
+    initAdminPanel();
+  }
+}
+
+// Handle Task Registration
+document.getElementById('create-task-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const title = document.getElementById('task-title').value;
-  const youtube_url = document.getElementById('task-url').value;
+  const url = document.getElementById('task-url').value;
   const reward = parseFloat(document.getElementById('task-reward').value);
-  const watch_time = parseInt(document.getElementById('task-time').value);
+  const time = parseInt(document.getElementById('task-time').value);
 
-  const { error } = await supabase.from('youtube_tasks').insert({
-    title, youtube_url, reward, watch_time, status: 'active'
-  });
+  const videoId = extractVideoID(url);
+  if (!videoId) {
+    NotificationManager.show("Invalid YouTube URL format.", "error");
+    return;
+  }
 
-  if (error) NotificationManager.show(error.message, "error");
-  else {
+  // Construct high-resolution thumbnail path
+  const thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+
+  const { error } = await supabase
+    .from('youtube_tasks')
+    .insert({
+      title,
+      youtube_url: url,
+      thumbnail,
+      reward,
+      watch_time: time,
+      status: 'active'
+    });
+
+  if (error) {
+    NotificationManager.show(error.message, "error");
+  } else {
     NotificationManager.show("New rewarded task registered!", "success");
-    loadActiveTasks();
+    document.getElementById('create-task-form').reset();
+    initAdminPanel();
   }
 });
 
-document.addEventListener('DOMContentLoaded', initAdmin);
+function extractVideoID(url) {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+document.addEventListener('DOMContentLoaded', initAdminPanel);

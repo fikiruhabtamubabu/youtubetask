@@ -3,50 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - PlayRewards</title>
+  <title>Admin Panel - PlayRewards</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .admin-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .admin-card {
+      padding: 20px;
+    }
+    .admin-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    table th, table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    table th {
+      color: var(--text-muted);
+    }
+  </style>
 </head>
 <body>
   <div class="gradient-bg"></div>
   <div class="toast-container" id="toastContainer"></div>
 
-  <main style="padding:40px; max-width:1200px; margin:0 auto;">
-    <h2 style="margin-bottom:32px;">PlayRewards System Admin Dashboard</h2>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;" class="split-pane">
-      
-      <div class="glass" style="padding:32px;">
-        <h3 style="margin-bottom:24px;">Register New Video Task</h3>
-        <form id="task-form">
+  <main style="padding: 40px; max-width: 1200px; margin: 0 auto;">
+    <h2 style="margin-bottom: 32px;">System Administration Console</h2>
+
+    <!-- Admin dashboard metrics -->
+    <div class="admin-stats-grid">
+      <div class="admin-card glass">
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Total Users</div>
+        <div class="stat-val" id="admin-total-users" style="font-size: 1.8rem;">0</div>
+      </div>
+      <div class="admin-card glass">
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Active Tasks</div>
+        <div class="stat-val" id="admin-total-tasks" style="font-size: 1.8rem;">0</div>
+      </div>
+      <div class="admin-card glass">
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Pending Payouts</div>
+        <div class="stat-val" id="admin-pending-payouts" style="font-size: 1.8rem; color: var(--accent);">0</div>
+      </div>
+    </div>
+
+    <div class="admin-split">
+      <!-- Create New Task Form -->
+      <div class="glass" style="padding: 32px;">
+        <h3 style="margin-bottom: 24px;">Create YouTube Task</h3>
+        <form id="create-task-form">
           <div class="form-group">
-            <label>Task Title</label>
-            <input type="text" id="task-title" required>
+            <label for="task-title">Video Title</label>
+            <input type="text" id="task-title" required placeholder="e.g. Watch & Earn Bonus Video">
           </div>
           <div class="form-group">
-            <label>YouTube Video URL</label>
-            <input type="url" id="task-url" required>
+            <label for="task-url">YouTube Link</label>
+            <input type="url" id="task-url" required placeholder="https://www.youtube.com/watch?v=...">
           </div>
           <div class="form-group">
-            <label>Reward Payout ($)</label>
-            <input type="number" step="0.01" id="task-reward" required>
+            <label for="task-reward">Reward Amount ($)</label>
+            <input type="number" step="0.01" id="task-reward" required placeholder="0.05">
           </div>
           <div class="form-group">
-            <label>Watch Duration Required (Seconds)</label>
-            <input type="number" id="task-time" required>
+            <label for="task-time">Watch Duration (Seconds)</label>
+            <input type="number" id="task-time" required value="30">
           </div>
-          <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Register Video</button>
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+            Publish Task
+          </button>
         </form>
       </div>
 
-      <div class="glass" style="padding:32px;">
-        <h3 style="margin-bottom:24px;">Active Payout Requests</h3>
-        <div id="payout-requests"></div>
-        <hr style="border:0; border-top:1px solid var(--border); margin:32px 0;">
-        <h3 style="margin-bottom:24px;">Active System Tasks</h3>
-        <div id="tasks-list"></div>
-      </div>
+      <!-- Task Deletion & Payout Operations -->
+      <div class="glass" style="padding: 32px;">
+        <h3 style="margin-bottom: 24px;">Withdrawal Requests</h3>
+        <div id="payout-requests-container">
+          <p style="color: var(--text-muted);">Querying payout requests...</p>
+        </div>
 
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <h3 style="margin-bottom: 24px;">Created Tasks</h3>
+        <div id="active-tasks-list">
+          <p style="color: var(--text-muted);">Querying tasks...</p>
+        </div>
+      </div>
     </div>
   </main>
 

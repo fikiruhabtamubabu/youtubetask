@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Balance - PlayRewards</title>
+  <title>Balance & Transactions - PlayRewards</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="gradient-bg"></div>
-  
+  <div class="toast-container" id="toastContainer"></div>
+
   <div class="dashboard-layout">
     <aside class="glass">
       <a href="index.html" class="logo">
@@ -26,14 +27,33 @@
     </aside>
 
     <main class="content">
-      <h2 style="margin-bottom:32px;">Transaction Details</h2>
-      <div class="glass" style="padding:32px;" id="withdraw-history">
-        <!-- List entries populate via JS -->
+      <h2 style="margin-bottom:32px;">Your Wallet & Earnings</h2>
+      
+      <div class="stats-grid">
+        <div class="stat-card glass">
+          <div style="color: var(--text-muted);">Current Balance</div>
+          <div class="stat-val" id="wallet-balance" style="color: var(--accent);">$0.00</div>
+        </div>
+        <div class="stat-card glass">
+          <div style="color: var(--text-muted);">Today's Earnings</div>
+          <div class="stat-val" id="today-earnings" style="color: var(--success);">$0.00</div>
+        </div>
+        <div class="stat-card glass">
+          <div style="color: var(--text-muted);">Total Lifetime Earnings</div>
+          <div class="stat-val" id="lifetime-earnings">$0.00</div>
+        </div>
+      </div>
+
+      <div class="glass" style="padding: 32px;">
+        <h3 style="margin-bottom: 24px;">Transaction History</h3>
+        <div id="transaction-history-list">
+          <p style="color: var(--text-muted);">Querying transactions...</p>
+        </div>
       </div>
     </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script type="module" src="js/withdraw.js"></script>
+  <script type="module" src="js/balance.js"></script>
 </body>
 </html>
