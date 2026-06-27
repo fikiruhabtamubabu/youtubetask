@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Withdraw - PlayRewards</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="gradient-bg"></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="dashboard-layout">
+    <aside class="glass">
+      <a href="index.html" class="logo">
+        <i class="fab fa-youtube"></i> Play<span>Rewards</span>
+      </a>
+      <ul class="menu-list">
+        <li><a href="dashboard.html" class="menu-link"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="balance.html" class="menu-link"><i class="fas fa-wallet"></i> Balance</a></li>
+        <li><a href="referral.html" class="menu-link"><i class="fas fa-user-plus"></i> Referral</a></li>
+        <li><a href="withdraw.html" class="menu-link active"><i class="fas fa-money-bill-transfer"></i> Withdraw</a></li>
+        <li><a href="profile.html" class="menu-link"><i class="fas fa-user-cog"></i> Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <h2 style="margin-bottom:32px;">Request Fund Payout</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;" class="split-pane">
+        <form id="withdraw-form" class="glass" style="padding:32px;">
+          <div class="form-group">
+            <label>Amount ($)</label>
+            <input type="number" step="0.01" id="amount" required>
+          </div>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select id="method">
+              <option value="USDT BEP20">USDT BEP20</option>
+              <option value="USDT TRC20">USDT TRC20</option>
+              <option value="PayPal">PayPal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Wallet Address</label>
+            <input type="text" id="wallet" required>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Withdraw</button>
+        </form>
+
+        <div class="glass" style="padding:32px;">
+          <h3 style="margin-bottom:24px;">Withdrawal Requests</h3>
+          <div id="withdraw-history"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/withdraw.js"></script>
+</body>
+</html>

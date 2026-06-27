@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch Task - PlayRewards</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .player-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 24px;
+    }
+    .video-ratio {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .video-ratio iframe {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="gradient-bg"></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <main class="player-container glass">
+    <div class="video-ratio">
+      <div id="player-frame"></div>
+    </div>
+    <div style="margin-top:24px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h2 id="watch-title">Task Loading...</h2>
+        <p id="status-ticker" style="color:var(--text-muted); margin-top:8px;">Play video to start verification.</p>
+      </div>
+      <div class="glass" style="padding: 16px 24px; font-size:1.8rem; font-weight:700; color:var(--accent);" id="time-countdown">00:00</div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script type="module" src="js/watch.js"></script>
+</body>
+</html>

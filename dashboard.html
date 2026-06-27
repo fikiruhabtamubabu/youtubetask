@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - PlayRewards</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="gradient-bg"></div>
+  
+  <div class="dashboard-layout">
+    <aside class="glass">
+      <a href="index.html" class="logo">
+        <i class="fab fa-youtube"></i> Play<span>Rewards</span>
+      </a>
+      <ul class="menu-list">
+        <li><a href="dashboard.html" class="menu-link active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="balance.html" class="menu-link"><i class="fas fa-wallet"></i> Balance</a></li>
+        <li><a href="referral.html" class="menu-link"><i class="fas fa-user-plus"></i> Referral</a></li>
+        <li><a href="withdraw.html" class="menu-link"><i class="fas fa-money-bill-transfer"></i> Withdraw</a></li>
+        <li><a href="profile.html" class="menu-link"><i class="fas fa-user-cog"></i> Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+        <div>
+          <h2>Welcome Back, <span id="profile-name">...</span></h2>
+        </div>
+        <img id="user-avatar" src="" alt="avatar" style="width:48px; height:48px; border-radius:50%; border:2px solid var(--accent);">
+      </header>
+
+      <section class="stats-grid">
+        <div class="stat-card glass">
+          <div>Your Balance</div>
+          <div class="stat-val" id="user-balance">$0.00</div>
+        </div>
+      </section>
+
+      <h3 style="margin-bottom:24px;">Available Watch Tasks</h3>
+      <div class="task-grid" id="tasks-container"></div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

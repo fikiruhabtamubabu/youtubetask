@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - PlayRewards</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="gradient-bg"></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <main style="padding:40px; max-width:1200px; margin:0 auto;">
+    <h2 style="margin-bottom:32px;">PlayRewards System Admin Dashboard</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;" class="split-pane">
+      
+      <div class="glass" style="padding:32px;">
+        <h3 style="margin-bottom:24px;">Register New Video Task</h3>
+        <form id="task-form">
+          <div class="form-group">
+            <label>Task Title</label>
+            <input type="text" id="task-title" required>
+          </div>
+          <div class="form-group">
+            <label>YouTube Video URL</label>
+            <input type="url" id="task-url" required>
+          </div>
+          <div class="form-group">
+            <label>Reward Payout ($)</label>
+            <input type="number" step="0.01" id="task-reward" required>
+          </div>
+          <div class="form-group">
+            <label>Watch Duration Required (Seconds)</label>
+            <input type="number" id="task-time" required>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Register Video</button>
+        </form>
+      </div>
+
+      <div class="glass" style="padding:32px;">
+        <h3 style="margin-bottom:24px;">Active Payout Requests</h3>
+        <div id="payout-requests"></div>
+        <hr style="border:0; border-top:1px solid var(--border); margin:32px 0;">
+        <h3 style="margin-bottom:24px;">Active System Tasks</h3>
+        <div id="tasks-list"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

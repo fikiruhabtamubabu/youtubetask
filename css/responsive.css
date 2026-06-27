@@ -1,0 +1,24 @@
+/* Responsive adjustments for mobile and tablets */
+@media (max-width: 991px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+  aside {
+    display: none; /* Can be toggled on mobile via Javascript */
+  }
+  .split-pane {
+    grid-template-columns: 1fr !important;
+  }
+  main.content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 576px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .auth-card {
+    padding: 24px;
+  }
+}

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - PlayRewards</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      padding: 40px;
+      text-align: center;
+    }
+    .google-login-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      background: #FFFFFF;
+      color: #1F2937;
+      border: none;
+      padding: 14px 24px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .google-login-btn:hover {
+      background: #F9FAFB;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    .google-icon {
+      width: 20px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="gradient-bg"></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="auth-container">
+    <div class="auth-card glass">
+      <h2 style="margin-bottom: 8px;">Login to Account</h2>
+      <p style="color: var(--text-muted); margin-bottom: 32px;">Access your dashboard and resume watching tasks.</p>
+      
+      <!-- Google Auth Button with SVG Logo -->
+      <button class="google-login-btn" id="google-login">
+        <svg class="google-icon" viewBox="0 0 24 24">
+          <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.53 14.98 1 12 1 7.35 1 3.4 3.65 1.57 7.5l3.86 3c.91-2.73 3.47-4.46 6.57-4.46z"/>
+          <path fill="#4285F4" d="M23.49 12.275c0-.805-.072-1.58-.205-2.325H12v4.4h6.44c-.277 1.485-1.11 2.743-2.365 3.585l3.682 2.855c2.155-1.986 3.403-4.912 3.403-8.515z"/>
+          <path fill="#FBBC05" d="M5.43 14.5c-.24-.73-.38-1.5-.38-2.3s.14-1.57.38-2.3l-3.86-3C.8 8.44 0 10.13 0 12s.8 3.56 1.57 5.1l3.86-3z"/>
+          <path fill="#34A853" d="M12 23c3.24 0 5.95-1.08 7.93-2.915l-3.682-2.855C15.225 17.9 13.725 18.3 12 18.3c-3.1 0-5.66-1.73-6.57-4.46l-3.86 3C3.4 20.35 7.35 23 12 23z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <p style="margin-top: 32px; font-size: 0.9rem; color: var(--text-muted);">
+        Don't have an account? <a href="signup.html" style="color: var(--accent); text-decoration: none;">Register here</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module">
+    import { loginWithGoogle } from './js/auth.js';
+    document.getElementById('google-login').addEventListener('click', loginWithGoogle);
+  </script>
+</body>
+</html>

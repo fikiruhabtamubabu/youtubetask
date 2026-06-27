@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Settings - PlayRewards</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="gradient-bg"></div>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="dashboard-layout">
+    <aside class="glass">
+      <a href="index.html" class="logo">
+        <i class="fab fa-youtube"></i> Play<span>Rewards</span>
+      </a>
+      <ul class="menu-list">
+        <li><a href="dashboard.html" class="menu-link"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+        <li><a href="balance.html" class="menu-link"><i class="fas fa-wallet"></i> Balance</a></li>
+        <li><a href="referral.html" class="menu-link"><i class="fas fa-user-plus"></i> Referral</a></li>
+        <li><a href="withdraw.html" class="menu-link"><i class="fas fa-money-bill-transfer"></i> Withdraw</a></li>
+        <li><a href="profile.html" class="menu-link active"><i class="fas fa-user-cog"></i> Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <h2 style="margin-bottom:32px;">Profile Configurations</h2>
+      <form id="profile-form" class="glass" style="max-width:500px; padding:32px;">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="email" readonly style="opacity:0.6;">
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="name" required>
+        </div>
+        <div class="form-group">
+          <label>Avatar URL</label>
+          <input type="url" id="avatar">
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Save Profile Settings</button>
+      </form>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+/* Dashboard container layout */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+aside {
+  border-right: 1px solid var(--border);
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.logo span { color: var(--accent); }
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+.menu-link.active, .menu-link:hover {
+  background: rgba(108, 99, 255, 0.1);
+  color: var(--accent);
+}
+
+main.content {
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+.stat-card {
+  padding: 24px;
+}
+.stat-val {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 8px;
+}
+
+/* Video Task Cards Grid */
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.task-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.task-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: #000;
+}
+.task-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.task-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(108, 99, 255, 0.85);
+  backdrop-filter: blur(4px);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.task-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.task-reward {
+  color: var(--success);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
