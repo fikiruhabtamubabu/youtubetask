@@ -14,9 +14,12 @@ async function initReferral() {
     .eq('id', session.user.id)
     .single();
 
-  if (profile) {
+  if (profile && profile.referral_code) {
     const referralUrl = `${window.location.origin}/signup.html?ref=${profile.referral_code}`;
-    document.getElementById('referral-link').value = referralUrl;
+    const linkInput = document.getElementById('referral-link');
+    if (linkInput) {
+      linkInput.value = referralUrl;
+    }
   }
 
   await loadReferralsList(session.user.id);
@@ -39,7 +42,9 @@ async function loadReferralsList(userId) {
     console.error("2. Referrals Query Error:", refError);
     if (countElement) countElement.innerText = "0";
     if (earningsElement) earningsElement.innerText = formatCurrency(0);
-    container.innerHTML = `<p style="color: #EF4444; text-align: center;">Query Error: ${refError.message}</p>`;
+    if (container) {
+      container.innerHTML = `<p style="color: #EF4444; text-align: center;">Query Error: ${refError.message}</p>`;
+    }
     return;
   }
 
@@ -49,14 +54,16 @@ async function loadReferralsList(userId) {
     console.log("4. No referrals found in database matching this User ID.");
     if (countElement) countElement.innerText = "0";
     if (earningsElement) earningsElement.innerText = formatCurrency(0);
-    container.innerHTML = '<p style="color:var(--text-muted); text-align: center;">No referred accounts registered yet.</p>';
+    if (container) {
+      container.innerHTML = '<p style="color:var(--text-muted); text-align: center;">No referred accounts registered yet.</p>';
+    }
     return;
   }
 
   // Update Referral Count
   if (countElement) countElement.innerText = list.length;
 
-  // Calculate Total referral earnings
+  // Calculate Total referral earnings (0.50 per referral)
   const totalEarned = list.length * 0.50;
   if (earningsElement) earningsElement.innerText = formatCurrency(totalEarned);
 
@@ -82,29 +89,33 @@ async function loadReferralsList(userId) {
   }
 
   // Render the Referral History List (Simplified: no pending/complete status shown)
-  container.innerHTML = list.map(ref => {
-    const profile = profileMap[ref.referred_id];
-    const displayName = profile?.name || profile?.email || 'New User';
-    
-    return `
-      <div style="border-bottom: 1px solid var(--border); padding: 14px 0; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <strong>${displayName}</strong><br>
-          <span style="font-size:0.8rem; color:var(--text-muted)">Joined the platform</span>
+  if (container) {
+    container.innerHTML = list.map(ref => {
+      const profile = profileMap[ref.referred_id];
+      const displayName = profile?.name || profile?.email || 'New User';
+      
+      return `
+        <div style="border-bottom: 1px solid var(--border); padding: 14px 0; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong>${displayName}</strong><br>
+            <span style="font-size:0.8rem; color:var(--text-muted)">Joined the platform</span>
+          </div>
+          <div style="font-weight: 600; color: var(--success)">
+            +${formatCurrency(0.50)}
+          </div>
         </div>
-        <div style="font-weight: 600; color: var(--success)">
-          +${formatCurrency(0.50)}
-        </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
 }
 
 document.getElementById('copy-referral-btn').addEventListener('click', () => {
   const linkBox = document.getElementById('referral-link');
-  linkBox.select();
-  document.execCommand('copy');
-  NotificationManager.show("Link copied to clipboard!", "success");
+  if (linkBox) {
+    linkBox.select();
+    document.execCommand('copy');
+    NotificationManager.show("Link copied to clipboard!", "success");
+  }
 });
 
 document.addEventListener('DOMContentLoaded', initReferral);
