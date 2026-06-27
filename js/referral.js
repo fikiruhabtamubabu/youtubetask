@@ -2,7 +2,7 @@
 import { supabase } from './supabase.js';
 import { checkRouteGuard } from './app.js';
 import { NotificationManager } from './notifications.js';
-import { formatCurrency } from './utils.js';
+import { formatCurrency, formatDate } from './utils.js';
 
 async function initReferral() {
   const session = await checkRouteGuard(true);
@@ -23,6 +23,8 @@ async function initReferral() {
 }
 
 async function loadReferralsList(userId) {
+  console.log("1. Querying referrals for User ID:", userId);
+
   // Query 1: Fetch raw referral records (No relations or joins - 100% error-proof)
   const { data: list, error: refError } = await supabase
     .from('referrals')
@@ -34,13 +36,17 @@ async function loadReferralsList(userId) {
   const container = document.getElementById('referral-history');
 
   if (refError) {
+    console.error("2. Referrals Query Error:", refError);
     if (countElement) countElement.innerText = "0";
     if (earningsElement) earningsElement.innerText = formatCurrency(0);
-    container.innerHTML = '<p style="color:var(--text-muted); text-align: center;">Error loading referrals.</p>';
+    container.innerHTML = `<p style="color: #EF4444; text-align: center;">Query Error: ${refError.message}</p>`;
     return;
   }
 
+  console.log("3. Raw referrals returned from database:", list);
+
   if (!list || list.length === 0) {
+    console.log("4. No referrals found in database matching this User ID.");
     if (countElement) countElement.innerText = "0";
     if (earningsElement) earningsElement.innerText = formatCurrency(0);
     container.innerHTML = '<p style="color:var(--text-muted); text-align: center;">No referred accounts registered yet.</p>';
@@ -56,11 +62,18 @@ async function loadReferralsList(userId) {
 
   // Query 2: Fetch referred user profile details using a clean ID lookup
   const referredIds = list.map(ref => ref.referred_id);
-  const { data: profiles } = await supabase
+  const { data: profiles, error: profError } = await supabase
     .from('profiles')
     .select('id, name, email')
     .in('id', referredIds);
 
+  if (profError) {
+    console.error("5. Profiles Query Error:", profError);
+  }
+
+  console.log("6. Referred profiles metadata returned:", profiles);
+
+  // Map profile metadata by User ID
   const profileMap = {};
   if (profiles) {
     profiles.forEach(p => {
