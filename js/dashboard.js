@@ -215,6 +215,8 @@ function onPlayerStateChange(event) {
 }
 
 // Backup Polling Engine: Bypasses browser cross-origin constraints
+// Locate and replace ONLY the startFallbackPolling function inside your local js/dashboard.js file:
+
 function startFallbackPolling() {
   if (fallbackInterval) return;
 
@@ -222,10 +224,10 @@ function startFallbackPolling() {
     if (ytPlayerInstance && typeof ytPlayerInstance.getPlayerState === 'function') {
       try {
         const state = ytPlayerInstance.getPlayerState();
-        const currTime = ytPlayerInstance.getCurrentTime();
 
-        // If the state is playing (1) OR if the video's current time is physically moving
-        if (state === 1 || (currTime !== lastTrackedTime && currTime > 0)) {
+        // state 1 = Playing, state 3 = Buffering
+        // Keep the countdown ticking smoothly during standard play and slow network buffering.
+        if (state === 1 || state === 3) {
           isVideoPlaying = true;
           if (isWindowFocused && !countdownTimer) {
             startCountdownTimer();
@@ -234,14 +236,12 @@ function startFallbackPolling() {
           isVideoPlaying = false;
           pauseCountdownTimer("Playback paused.");
         }
-        lastTrackedTime = currTime;
       } catch (err) {
         // Suppress any temporary cross-origin initialization errors
       }
     }
   }, 500);
 }
-
 function startCountdownTimer() {
   if (countdownTimer || isTaskCompleted) return;
 
