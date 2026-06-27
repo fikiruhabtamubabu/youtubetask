@@ -2,7 +2,7 @@
 import { supabase } from './supabase.js';
 import { checkRouteGuard } from './app.js';
 import { NotificationManager } from './notifications.js';
-import { formatCurrency, formatDate } from './utils.js';
+import { formatCurrency } from './utils.js';
 
 async function initReferral() {
   const session = await checkRouteGuard(true);
@@ -23,8 +23,6 @@ async function initReferral() {
 }
 
 async function loadReferralsList(userId) {
-  console.log("Loading referrals for User ID:", userId);
-
   // Query 1: Fetch raw referral records (No relations or joins - 100% error-proof)
   const { data: list, error: refError } = await supabase
     .from('referrals')
@@ -36,14 +34,11 @@ async function loadReferralsList(userId) {
   const container = document.getElementById('referral-history');
 
   if (refError) {
-    console.error("Referrals Query Error:", refError);
     if (countElement) countElement.innerText = "0";
     if (earningsElement) earningsElement.innerText = formatCurrency(0);
-    container.innerHTML = `<p style="color: #EF4444; text-align: center;">Query Error: ${refError.message}</p>`;
+    container.innerHTML = '<p style="color:var(--text-muted); text-align: center;">Error loading referrals.</p>';
     return;
   }
-
-  console.log("Raw referrals returned from database:", list);
 
   if (!list || list.length === 0) {
     if (countElement) countElement.innerText = "0";
@@ -56,23 +51,16 @@ async function loadReferralsList(userId) {
   if (countElement) countElement.innerText = list.length;
 
   // Calculate Total referral earnings
-  const totalEarned = list.reduce((acc, curr) => acc + (curr.status === 'completed' ? curr.reward : 0), 0);
+  const totalEarned = list.length * 0.50;
   if (earningsElement) earningsElement.innerText = formatCurrency(totalEarned);
 
   // Query 2: Fetch referred user profile details using a clean ID lookup
   const referredIds = list.map(ref => ref.referred_id);
-  const { data: profiles, error: profError } = await supabase
+  const { data: profiles } = await supabase
     .from('profiles')
     .select('id, name, email')
     .in('id', referredIds);
 
-  if (profError) {
-    console.error("Profiles Query Error:", profError);
-  }
-
-  console.log("Referred profiles metadata returned:", profiles);
-
-  // Map profile metadata by User ID
   const profileMap = {};
   if (profiles) {
     profiles.forEach(p => {
@@ -80,7 +68,7 @@ async function loadReferralsList(userId) {
     });
   }
 
-  // Render the Referral History List
+  // Render the Referral History List (Simplified: no pending/complete status shown)
   container.innerHTML = list.map(ref => {
     const profile = profileMap[ref.referred_id];
     const displayName = profile?.name || profile?.email || 'New User';
@@ -89,10 +77,10 @@ async function loadReferralsList(userId) {
       <div style="border-bottom: 1px solid var(--border); padding: 14px 0; display:flex; justify-content:space-between; align-items:center;">
         <div>
           <strong>${displayName}</strong><br>
-          <span style="font-size:0.8rem; color:var(--text-muted)">Status: ${ref.status === 'completed' ? 'Earned' : 'Pending First Task'}</span>
+          <span style="font-size:0.8rem; color:var(--text-muted)">Joined the platform</span>
         </div>
-        <div style="font-weight: 600; color: ${ref.status === 'completed' ? 'var(--success)' : 'var(--text-muted)'}">
-          ${ref.status === 'completed' ? `+${formatCurrency(ref.reward)}` : 'Pending'}
+        <div style="font-weight: 600; color: var(--success)">
+          +${formatCurrency(0.50)}
         </div>
       </div>
     `;
