@@ -161,7 +161,7 @@ function openWatchModal(taskId, videoUrl, watchTime, title) {
 
   document.getElementById('modal-title').innerText = title;
   document.getElementById('modal-timer-countdown').innerText = formatTimer(secondsLeft);
-  document.getElementById('modal-status-text').innerHTML = `Play the video to start the verification timer.`;
+  document.getElementById('modal-status-text').innerHTML = `Initializing secure video player...`;
   document.getElementById('watch-modal').style.display = 'flex';
 
   const videoId = extractVideoID(videoUrl);
@@ -190,15 +190,21 @@ function initializeIframePlayer(videoId) {
       'disablekb': 1,
       'rel': 0,
       'fs': 0,
-      'enablejsapi': 1, // CRITICAL: Enables Javascript interface on the Iframe
+      'enablejsapi': 1, // Enables Javascript interface on the Iframe
       'origin': window.location.origin
     },
     events: {
+      'onReady': onPlayerReady, // Safely delay tracking until the player is ready
       'onStateChange': onPlayerStateChange
     }
   });
+}
 
-  // Start the backup polling loop (checks every 500ms)
+function onPlayerReady(event) {
+  console.log("YouTube Player is ready. Initializing dynamic anti-cheat tracking.");
+  document.getElementById('modal-status-text').innerHTML = `Play the video to start the verification timer.`;
+  
+  // Only start the fallback tracking loop AFTER the onReady event fires safely
   startFallbackPolling();
 }
 
@@ -215,8 +221,6 @@ function onPlayerStateChange(event) {
 }
 
 // Backup Polling Engine: Bypasses browser cross-origin constraints
-// Locate and replace ONLY the startFallbackPolling function inside your local js/dashboard.js file:
-
 function startFallbackPolling() {
   if (fallbackInterval) return;
 
@@ -242,6 +246,7 @@ function startFallbackPolling() {
     }
   }, 500);
 }
+
 function startCountdownTimer() {
   if (countdownTimer || isTaskCompleted) return;
 
