@@ -1,32 +1,92 @@
 // js/balance.js
 import { supabase } from './supabase.js';
+import { checkRouteGuard } from './app.js';
+import { formatCurrency, formatDate } from './utils.js';
 
-async function initBalance() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+async function initBalancePage() {
+  const session = await checkRouteGuard(true);
+  if (!session) return;
 
-  const { data: profile } = await supabase.from('profiles').select('balance').eq('id', user.id).single();
+  await loadWalletStats(session.user.id);
+  await loadTransactionList(session.user.id);
+}
+
+async function loadWalletStats(userId) {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('balance')
+    .eq('id', userId)
+    .single();
+
   if (profile) {
-    document.getElementById('currentBalance').innerText = `$${profile.balance.toFixed(2)}`;
+    // Check for both possible ID formats safely
+    const balanceEl = document.getElementById('wallet-balance') || document.getElementById('user-balance');
+    if (balanceEl) {
+      balanceEl.innerText = formatCurrency(profile.balance);
+    }
   }
 
-  const { data: txns } = await supabase.from('transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-  const tbody = document.getElementById('txnHistoryBody');
-  if (!tbody) return;
+  // Calculate today's earnings from completed tasks
+  const todayStart = new Date();
+  todayStart.setHours(0,0,0,0);
 
-  if (!txns || txns.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 24px; color: var(--text-muted);">No records found.</td></tr>`;
+  const { data: todayTransactions } = await supabase
+    .from('transactions')
+    .select('amount')
+    .eq('user_id', userId)
+    .gt('created_at', todayStart.toISOString());
+
+  let todaySum = 0;
+  if (todayTransactions) {
+    todaySum = todayTransactions.reduce((acc, curr) => acc + (curr.amount > 0 ? curr.amount : 0), 0);
+  }
+  const todayEl = document.getElementById('today-earnings');
+  if (todayEl) {
+    todayEl.innerText = formatCurrency(todaySum);
+  }
+
+  // Calculate lifetime earnings
+  const { data: allPositives } = await supabase
+    .from('transactions')
+    .select('amount')
+    .eq('user_id', userId);
+
+  let lifetimeSum = 0;
+  if (allPositives) {
+    lifetimeSum = allPositives.reduce((acc, curr) => acc + (curr.amount > 0 ? curr.amount : 0), 0);
+  }
+  const lifetimeEl = document.getElementById('lifetime-earnings');
+  if (lifetimeEl) {
+    lifetimeEl.innerText = formatCurrency(lifetimeSum);
+  }
+}
+
+async function loadTransactionList(userId) {
+  const container = document.getElementById('transaction-history-list');
+  if (!container) return; // Exit early if container does not exist on page
+
+  const { data: transactions, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error || !transactions || transactions.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No transactions found.</p>';
     return;
   }
 
-  tbody.innerHTML = txns.map(t => `
-    <tr style="border-bottom: 1px solid var(--border);">
-      <td style="padding: 12px; text-transform: capitalize;"><strong>${t.type}</strong></td>
-      <td style="padding: 12px; color: var(--text-muted);">${t.description || ''}</td>
-      <td style="padding: 12px; color: ${t.amount >= 0 ? 'var(--success)' : '#EF4444'}">${t.amount >= 0 ? '+' : ''}$${t.amount.toFixed(2)}</td>
-      <td style="padding: 12px; font-size: 0.85rem; color: var(--text-muted);">${new Date(t.created_at).toLocaleDateString()}</td>
-    </tr>
+  container.innerHTML = transactions.map(t => `
+    <div style="border-bottom: 1px solid var(--border); padding: 16px 0; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <strong>${t.description || 'System Adjustment'}</strong><br>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">${formatDate(t.created_at)}</span>
+      </div>
+      <div style="font-weight: 600; color: ${t.amount >= 0 ? 'var(--success)' : '#EF4444'}">
+        ${t.amount >= 0 ? '+' : ''}${formatCurrency(t.amount)}
+      </div>
+    </div>
   `).join('');
 }
 
-document.addEventListener('DOMContentLoaded', initBalance);
+document.addEventListener('DOMContentLoaded', initBalancePage);
