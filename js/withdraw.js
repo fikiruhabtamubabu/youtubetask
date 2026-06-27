@@ -70,3 +70,50 @@ document.getElementById('withdraw-form').addEventListener('submit', async (e) =>
 });
 
 document.addEventListener('DOMContentLoaded', initWithdraw);
+// Mobile Responsive Menu Toggle Handler (Transforms --- to X, hides underlying pages)
+function setupMobileMenu() {
+  const triggerBtn = document.getElementById('mobile-menu-trigger');
+  const sidebar = document.querySelector('aside');
+  
+  if (triggerBtn && sidebar) {
+    triggerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      const isOpen = sidebar.classList.contains('mobile-menu-open');
+      const icon = triggerBtn.querySelector('i');
+      
+      if (!isOpen) {
+        sidebar.classList.add('mobile-menu-open');
+        icon.className = 'fas fa-times'; // Change icon to X
+        document.body.style.overflow = 'hidden'; // Stop background scrolling
+      } else {
+        sidebar.classList.remove('mobile-menu-open');
+        icon.className = 'fas fa-bars'; // Change icon back to hamburger
+        document.body.style.overflow = 'auto'; // Restore background scrolling
+      }
+    });
+
+    document.querySelectorAll('aside .menu-link').forEach(link => {
+      link.addEventListener('click', () => {
+        sidebar.classList.remove('mobile-menu-open');
+        const icon = triggerBtn.querySelector('i');
+        if (icon) icon.className = 'fas fa-bars';
+        document.body.style.overflow = 'auto';
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (sidebar.classList.contains('mobile-menu-open')) {
+        if (!sidebar.contains(e.target) && !triggerBtn.contains(e.target)) {
+          sidebar.classList.remove('mobile-menu-open');
+          const icon = triggerBtn.querySelector('i');
+          if (icon) icon.className = 'fas fa-bars';
+          document.body.style.overflow = 'auto';
+        }
+      }
+    });
+  }
+}
+
+// Execute responsive handler
+setupMobileMenu();

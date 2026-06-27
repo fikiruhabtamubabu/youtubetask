@@ -6,13 +6,25 @@
   <title>Balance & Transactions - PlayRewards</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="gradient-bg"></div>
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Mobile Sticky Top Header (Visible only on mobile) -->
+  <header class="mobile-top-nav">
+    <a href="index.html" class="logo" style="font-size: 1.25rem;">
+      <i class="fab fa-youtube"></i> Play<span>Rewards</span>
+    </a>
+    <button id="mobile-menu-trigger" class="mobile-menu-toggle">
+      <i class="fas fa-bars"></i>
+    </button>
+  </header>
+
   <div class="dashboard-layout">
+    <!-- Sidebar Menu (Acts as full-screen overlay on mobile) -->
     <aside class="glass">
       <a href="index.html" class="logo">
         <i class="fab fa-youtube"></i> Play<span>Rewards</span>

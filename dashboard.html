@@ -6,6 +6,7 @@
   <title>Dashboard - PlayRewards</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* Popup Modal Styles */
@@ -86,15 +87,19 @@
   <div class="gradient-bg"></div>
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Mobile Sticky Top Header (Visible only on mobile) -->
+  <header class="mobile-top-nav">
+    <a href="index.html" class="logo" style="font-size: 1.25rem;">
+      <i class="fab fa-youtube"></i> Play<span>Rewards</span>
+    </a>
+    <button id="mobile-menu-trigger" class="mobile-menu-toggle">
+      <i class="fas fa-bars"></i>
+    </button>
+  </header>
+
   <div class="dashboard-layout">
+    <!-- Sidebar Menu (Acts as full-screen overlay on mobile) -->
     <aside class="glass">
-        <aside class="glass">
-      <!-- Mobile Close Button -->
-      <button id="menu-close-btn" class="menu-close-btn">&times;</button>
-      
-      <a href="index.html" class="logo">
-        <i class="fab fa-youtube"></i> Play<span>Rewards</span>
-      </a>
       <a href="index.html" class="logo">
         <i class="fab fa-youtube"></i> Play<span>Rewards</span>
       </a>
@@ -108,16 +113,11 @@
     </aside>
 
     <main class="content">
+      <!-- Desktop Header -->
       <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <!-- Mobile Hamburger Trigger Button -->
-          <button id="menu-toggle-btn" class="menu-toggle-btn glass">
-            <i class="fas fa-bars"></i>
-          </button>
-          <div>
-            <h2>Available Tasks</h2>
-            <p style="color: var(--text-muted);">Watch videos, collect rewards, and earn balance points.</p>
-          </div>
+        <div>
+          <h2>Available Tasks</h2>
+          <p style="color: var(--text-muted);">Watch videos, collect rewards, and earn balance points.</p>
         </div>
         <div style="display: flex; align-items: center; gap: 16px;">
           <div class="glass" style="padding: 8px 16px; font-weight:600;" id="user-display-balance">$0.00</div>
