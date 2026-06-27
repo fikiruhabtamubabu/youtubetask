@@ -28,6 +28,19 @@
 
     <main class="content">
       <h2 style="margin-bottom:32px;">Referral Program</h2>
+
+      <!-- Referral Statistics Cards -->
+      <div class="stats-grid" style="margin-bottom: 32px;">
+        <div class="stat-card glass">
+          <div style="color: var(--text-muted); font-size: 0.85rem;">Total Referrals Registered</div>
+          <div class="stat-val" id="referrals-count" style="color: var(--accent);">0</div>
+        </div>
+        <div class="stat-card glass">
+          <div style="color: var(--text-muted); font-size: 0.85rem;">Total Referral Earnings</div>
+          <div class="stat-val" id="referrals-earnings" style="color: var(--success);">$0.00</div>
+        </div>
+      </div>
+
       <div class="glass" style="padding:32px; margin-bottom:24px;">
         <h3 style="margin-bottom:16px;">Your Promo Code Link</h3>
         <div style="display:flex; gap:16px;">
@@ -35,6 +48,7 @@
           <button class="btn-primary" id="copy-referral-btn">Copy</button>
         </div>
       </div>
+
       <div class="glass" style="padding:32px;">
         <h3 style="margin-bottom:16px;">Your Referrals</h3>
         <div id="referral-history"></div>

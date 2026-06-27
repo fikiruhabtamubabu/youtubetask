@@ -132,3 +132,33 @@ body {
   flex-direction: column;
   gap: 12px;
 }
+/* Styling Fix for Dropdown Select Elements and Options */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position-x: calc(100% - 14px);
+  background-position-y: 50%;
+  background-color: var(--card) !important;
+  color: #fff !important;
+  border: 1px solid var(--border) !important;
+  padding: 12px 20px !important;
+  border-radius: 12px !important;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+}
+
+/* Ensure options use the website dark theme colors */
+select option {
+  background-color: var(--bg) !important;
+  color: #fff !important;
+  padding: 12px !important;
+}

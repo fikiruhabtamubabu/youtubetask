@@ -11,24 +11,40 @@ async function initAdminPanel() {
 }
 
 async function loadAdminStats() {
-  // Query total system users
+  // 1. Query total system users
   const { count: usersCount } = await supabase
     .from('profiles')
     .select('id', { count: 'exact', head: true });
   document.getElementById('admin-total-users').innerText = usersCount || 0;
 
-  // Query total active youtube tasks
+  // 2. Query active users (defined as users who have completed at least 1 task)
+  const { data: activeUsers, error: activeErr } = await supabase
+    .from('completed_tasks')
+    .select('user_id');
+  
+  let uniqueActiveCount = 0;
+  if (!activeErr && activeUsers) {
+    const uniqueUsers = new Set(activeUsers.map(item => item.user_id));
+    uniqueActiveCount = uniqueUsers.size;
+  }
+  // Fallback to updating an active users element if it exists in your dashboard markup
+  const activeUserEl = document.getElementById('admin-active-users');
+  if (activeUserEl) {
+    activeUserEl.innerText = uniqueActiveCount;
+  }
+
+  // 3. Query total active youtube tasks
   const { count: tasksCount } = await supabase
     .from('youtube_tasks')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active');
   document.getElementById('admin-total-tasks').innerText = tasksCount || 0;
 
-  // Query pending withdraw requests count
+  // 4. Query pending withdraw requests count (now matching status 'inprogress')
   const { count: pendingPayoutsCount } = await supabase
     .from('withdraw_requests')
     .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending');
+    .eq('status', 'inprogress');
   document.getElementById('admin-pending-payouts').innerText = pendingPayoutsCount || 0;
 }
 
@@ -38,7 +54,7 @@ async function loadPayoutRequests() {
   const { data: requests, error } = await supabase
     .from('withdraw_requests')
     .select('*, profiles(name, email)')
-    .eq('status', 'pending');
+    .eq('status', 'inprogress'); // Matches 'inprogress' default
 
   if (error || !requests || requests.length === 0) {
     container.innerHTML = '<p style="color: var(--text-muted);">No pending withdrawals.</p>';
@@ -67,17 +83,22 @@ async function loadPayoutRequests() {
   });
 }
 
+// Executes secure transaction processing RPC (performs auto-refunds on rejection)
 async function processPayout(id, status) {
-  const { error } = await supabase
-    .from('withdraw_requests')
-    .update({ status })
-    .eq('id', id);
+  try {
+    const { data, error } = await supabase.rpc('process_withdrawal_request', {
+      target_request_id: id,
+      target_status: status
+    });
 
-  if (error) {
-    NotificationManager.show("Error updating payout.", "error");
-  } else {
-    NotificationManager.show(`Payout request ${status}.`, "success");
-    initAdminPanel();
+    if (error || !data.success) {
+      NotificationManager.show(data?.message || "Error processing payout request.", "error");
+    } else {
+      NotificationManager.show(`Payout request successfully marked as ${status}!`, "success");
+      await initAdminPanel();
+    }
+  } catch (err) {
+    NotificationManager.show("Error processing payout request.", "error");
   }
 }
 
@@ -117,7 +138,7 @@ async function deleteTask(id) {
     NotificationManager.show("Error deleting task.", "error");
   } else {
     NotificationManager.show("Task deleted successfully.", "success");
-    initAdminPanel();
+    await initAdminPanel();
   }
 }
 
@@ -154,7 +175,7 @@ document.getElementById('create-task-form').addEventListener('submit', async (e)
   } else {
     NotificationManager.show("New rewarded task registered!", "success");
     document.getElementById('create-task-form').reset();
-    initAdminPanel();
+    await initAdminPanel();
   }
 });
 
