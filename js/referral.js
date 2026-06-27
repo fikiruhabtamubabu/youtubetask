@@ -29,7 +29,7 @@ async function loadReferralsList(userId) {
       id,
       status,
       reward,
-      referred:profiles!referred_id(name, email)
+      referred_id ( name, email )
     `)
     .eq('referrer_id', userId);
 
@@ -38,31 +38,34 @@ async function loadReferralsList(userId) {
   const container = document.getElementById('referral-history');
 
   if (error || !list || list.length === 0) {
-    countElement.innerText = "0";
-    earningsElement.innerText = formatCurrency(0);
+    if (countElement) countElement.innerText = "0";
+    if (earningsElement) earningsElement.innerText = formatCurrency(0);
     container.innerHTML = '<p style="color:var(--text-muted); text-align: center;">No referred accounts registered yet.</p>';
     return;
   }
 
   // Count total registers
-  countElement.innerText = list.length;
+  if (countElement) countElement.innerText = list.length;
 
   // Calculate earned referral rewards
   const totalEarned = list.reduce((acc, curr) => acc + (curr.status === 'completed' ? curr.reward : 0), 0);
-  earningsElement.innerText = formatCurrency(totalEarned);
+  if (earningsElement) earningsElement.innerText = formatCurrency(totalEarned);
 
   // Render the table
-  container.innerHTML = list.map(ref => `
-    <div style="border-bottom: 1px solid var(--border); padding: 14px 0; display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <strong>${ref.referred?.name || ref.referred?.email}</strong><br>
-        <span style="font-size:0.8rem; color:var(--text-muted)">Status: ${ref.status === 'completed' ? 'Earned' : 'Pending First Task'}</span>
+  container.innerHTML = list.map(ref => {
+    const displayName = ref.referred_id?.name || ref.referred_id?.email || 'New User';
+    return `
+      <div style="border-bottom: 1px solid var(--border); padding: 14px 0; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong>${displayName}</strong><br>
+          <span style="font-size:0.8rem; color:var(--text-muted)">Status: ${ref.status === 'completed' ? 'Earned' : 'Pending First Task'}</span>
+        </div>
+        <div style="font-weight: 600; color: ${ref.status === 'completed' ? 'var(--success)' : 'var(--text-muted)'}">
+          ${ref.status === 'completed' ? `+${formatCurrency(ref.reward)}` : 'Pending'}
+        </div>
       </div>
-      <div style="font-weight: 600; color: ${ref.status === 'completed' ? 'var(--success)' : 'var(--text-muted)'}">
-        ${ref.status === 'completed' ? `+${formatCurrency(ref.reward)}` : 'Pending'}
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 document.getElementById('copy-referral-btn').addEventListener('click', () => {
