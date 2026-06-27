@@ -11,6 +11,8 @@ let totalTasksCount = 0;
 // Modal & Anti-Cheat variables
 let ytPlayerInstance = null;
 let countdownTimer = null;
+let fallbackInterval = null; // Backup polling tracker
+let lastTrackedTime = -1;
 let secondsLeft = 0;
 let isVideoPlaying = false;
 let isWindowFocused = true;
@@ -35,8 +37,11 @@ async function loadUserProfile(userId) {
     .single();
 
   if (profile) {
-    document.getElementById('user-display-balance').innerText = formatCurrency(profile.balance);
-    document.getElementById('user-avatar').src = profile.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80";
+    const balanceEl = document.getElementById('user-display-balance');
+    if (balanceEl) balanceEl.innerText = formatCurrency(profile.balance);
+    
+    const avatarEl = document.getElementById('user-avatar');
+    if (avatarEl) avatarEl.src = profile.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80";
   }
 }
 
@@ -137,6 +142,7 @@ function openWatchModal(taskId, videoUrl, watchTime, title) {
   secondsLeft = watchTime;
   isTaskCompleted = false;
   isVideoPlaying = false;
+  lastTrackedTime = -1;
 
   document.getElementById('modal-title').innerText = title;
   document.getElementById('modal-timer-countdown').innerText = formatTimer(secondsLeft);
@@ -159,7 +165,6 @@ function extractVideoID(url) {
 }
 
 function initializeIframePlayer(videoId) {
-  // Clear any existing player frame first
   document.getElementById('modal-video-frame').innerHTML = '';
   
   ytPlayerInstance = new YT.Player('modal-video-frame', {
@@ -170,12 +175,16 @@ function initializeIframePlayer(videoId) {
       'disablekb': 1,
       'rel': 0,
       'fs': 0,
+      'enablejsapi': 1, // CRITICAL: Enables Javascript interface on the Iframe
       'origin': window.location.origin
     },
     events: {
       'onStateChange': onPlayerStateChange
     }
   });
+
+  // Start the backup polling loop (checks every 500ms)
+  startFallbackPolling();
 }
 
 function onPlayerStateChange(event) {
@@ -188,6 +197,34 @@ function onPlayerStateChange(event) {
     isVideoPlaying = false;
     pauseCountdownTimer("Playback paused.");
   }
+}
+
+// Backup Polling Engine: Bypasses browser cross-origin constraints
+function startFallbackPolling() {
+  if (fallbackInterval) return;
+
+  fallbackInterval = setInterval(() => {
+    if (ytPlayerInstance && typeof ytPlayerInstance.getPlayerState === 'function') {
+      try {
+        const state = ytPlayerInstance.getPlayerState();
+        const currTime = ytPlayerInstance.getCurrentTime();
+
+        // If the state is playing (1) OR if the video's current time is physically moving
+        if (state === 1 || (currTime !== lastTrackedTime && currTime > 0)) {
+          isVideoPlaying = true;
+          if (isWindowFocused && !countdownTimer) {
+            startCountdownTimer();
+          }
+        } else {
+          isVideoPlaying = false;
+          pauseCountdownTimer("Playback paused.");
+        }
+        lastTrackedTime = currTime;
+      } catch (err) {
+        // Suppress any temporary cross-origin initialization errors
+      }
+    }
+  }, 500);
 }
 
 function startCountdownTimer() {
@@ -232,10 +269,16 @@ async function executeTaskReward() {
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
     NotificationManager.show(`Successfully earned $${data.reward.toFixed(2)}!`, "success");
     
-    // Automatically close the popup and reload dashboard metrics
+    // Refresh the user's balance on the header immediately
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await loadUserProfile(session.user.id);
+    }
+
+    // Automatically close the popup after a brief delay
     setTimeout(() => {
       closeWatchModal();
-      location.reload();
+      loadTasksGrid(); // Refresh tasks grid dynamically
     }, 2500);
 
   } catch (err) {
@@ -245,10 +288,14 @@ async function executeTaskReward() {
 }
 
 function closeWatchModal() {
-  // Clear any running timers
+  // Clear any running intervals
   if (countdownTimer) {
     clearInterval(countdownTimer);
     countdownTimer = null;
+  }
+  if (fallbackInterval) {
+    clearInterval(fallbackInterval);
+    fallbackInterval = null;
   }
 
   // Destroy YouTube Player instance to stop playback
