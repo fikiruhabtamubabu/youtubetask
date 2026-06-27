@@ -23,8 +23,16 @@ async function initDashboard() {
   const session = await checkRouteGuard(true);
   if (!session) return;
 
-  await loadUserProfile(session.user.id);
-  await loadTasksGrid();
+  // Optimize: Fetch profile metrics and task grid in parallel to eliminate page lag
+  try {
+    await Promise.all([
+      loadUserProfile(session.user.id),
+      loadTasksGrid()
+    ]);
+  } catch (err) {
+    console.error("Dashboard parallel loading failed:", err);
+  }
+
   setupModalEventListeners();
   setupPaginationEventListeners();
 }
@@ -80,7 +88,7 @@ async function loadTasksGrid() {
     card.className = 'task-card glass glow-hover';
     card.innerHTML = `
       <div class="task-img-wrapper">
-        <img src="${task.thumbnail}" class="task-img" alt="cover">
+        <img src="${task.thumbnail}" class="task-img" alt="cover" loading="lazy">
         <span class="task-badge">${task.watch_time} Secs</span>
       </div>
       <div class="task-body">
@@ -115,24 +123,31 @@ function updatePaginationControls() {
   const prevBtn = document.getElementById('prev-page-btn');
   const nextBtn = document.getElementById('next-page-btn');
 
-  prevBtn.disabled = currentPage === 1;
-  nextBtn.disabled = currentPage * tasksPerPage >= totalTasksCount;
+  if (prevBtn) prevBtn.disabled = currentPage === 1;
+  if (nextBtn) nextBtn.disabled = currentPage * tasksPerPage >= totalTasksCount;
 }
 
 function setupPaginationEventListeners() {
-  document.getElementById('prev-page-btn').addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      loadTasksGrid();
-    }
-  });
+  const prevBtn = document.getElementById('prev-page-btn');
+  const nextBtn = document.getElementById('next-page-btn');
 
-  document.getElementById('next-page-btn').addEventListener('click', () => {
-    if (currentPage * tasksPerPage < totalTasksCount) {
-      currentPage++;
-      loadTasksGrid();
-    }
-  });
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadTasksGrid();
+      }
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (currentPage * tasksPerPage < totalTasksCount) {
+        currentPage++;
+        loadTasksGrid();
+      }
+    });
+  }
 }
 
 /* Modal Popup & Anti-Cheat Player Engine */
