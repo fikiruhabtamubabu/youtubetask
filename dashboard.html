@@ -88,6 +88,13 @@
 
   <div class="dashboard-layout">
     <aside class="glass">
+        <aside class="glass">
+      <!-- Mobile Close Button -->
+      <button id="menu-close-btn" class="menu-close-btn">&times;</button>
+      
+      <a href="index.html" class="logo">
+        <i class="fab fa-youtube"></i> Play<span>Rewards</span>
+      </a>
       <a href="index.html" class="logo">
         <i class="fab fa-youtube"></i> Play<span>Rewards</span>
       </a>
@@ -102,9 +109,15 @@
 
     <main class="content">
       <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-        <div>
-          <h2>Available Tasks</h2>
-          <p style="color: var(--text-muted);">Watch videos, collect rewards, and earn balance points.</p>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <!-- Mobile Hamburger Trigger Button -->
+          <button id="menu-toggle-btn" class="menu-toggle-btn glass">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div>
+            <h2>Available Tasks</h2>
+            <p style="color: var(--text-muted);">Watch videos, collect rewards, and earn balance points.</p>
+          </div>
         </div>
         <div style="display: flex; align-items: center; gap: 16px;">
           <div class="glass" style="padding: 8px 16px; font-weight:600;" id="user-display-balance">$0.00</div>

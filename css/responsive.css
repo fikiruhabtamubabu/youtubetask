@@ -22,3 +22,80 @@
     padding: 24px;
   }
 }
+/* ==========================================
+   MOBILE SIDEBAR COLLAPSE STYLES
+   ========================================== */
+
+/* Mobile Hamburger Trigger - Hidden on Desktop */
+.menu-toggle-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: #fff;
+  font-size: 1.2rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.menu-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-muted);
+}
+
+/* Close Button inside Sidebar - Hidden on Desktop */
+.menu-close-btn {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 10100;
+}
+.menu-close-btn:hover {
+  color: #EF4444;
+}
+
+/* Tablet & Smartphone Responsive Media Query */
+@media (max-width: 991px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Position Sidebar Off-Screen */
+  aside {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 10000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    background: #0d0f14; /* Solid dark color so page text does not bleed through */
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
+  }
+  
+  /* Slide-In Menu Active Class */
+  aside.show-menu {
+    transform: translateX(0);
+  }
+  
+  /* Make buttons visible on mobile */
+  .menu-toggle-btn {
+    display: flex;
+  }
+  .menu-close-btn {
+    display: block;
+  }
+}

@@ -324,3 +324,33 @@ function formatTimer(seconds) {
 }
 
 document.addEventListener('DOMContentLoaded', initDashboard);
+// Mobile Responsive Menu Toggle Handler
+function setupMobileMenu() {
+  const toggleBtn = document.getElementById('menu-toggle-btn');
+  const closeBtn = document.getElementById('menu-close-btn');
+  const asideMenu = document.querySelector('aside');
+
+  if (toggleBtn && asideMenu) {
+    toggleBtn.addEventListener('click', () => {
+      asideMenu.classList.add('show-menu');
+    });
+  }
+
+  if (closeBtn && asideMenu) {
+    closeBtn.addEventListener('click', () => {
+      asideMenu.classList.remove('show-menu');
+    });
+  }
+
+  // Close the sidebar if the user clicks anywhere outside of it on mobile
+  document.addEventListener('click', (e) => {
+    if (asideMenu && asideMenu.classList.contains('show-menu')) {
+      if (!asideMenu.contains(e.target) && !toggleBtn.contains(e.target)) {
+        asideMenu.classList.remove('show-menu');
+      }
+    }
+  });
+}
+
+// Execute menu setup
+setupMobileMenu();
